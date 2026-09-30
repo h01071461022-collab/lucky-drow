@@ -1,0 +1,1768 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>럭키 드로우</title>
+<style>
+  @font-face {
+    font-family: "LuckyDrawDisplay";
+    src: url("fonts/display.woff2") format("woff2");
+    font-weight: 800;
+    font-display: swap;
+  }
+
+  :root {
+    --color-bg: #F6F4EF;
+    --color-surface: #FFFFFF;
+    --color-surface-alt: #ECE7DB;
+    --color-ink: #1C1B18;
+    --color-ink-soft: #57534A;
+    --color-border: #D8D2C2;
+    --color-primary: #B33A1F;
+    --color-primary-ink: #FFFFFF;
+    --color-danger: #A31E1E;
+    --color-blank-dark: #8B8577;
+    --color-blank-light: #CFC9BA;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    --font-display: "LuckyDrawDisplay", var(--font-sans);
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 16px;
+    --space-4: 24px;
+    --space-5: 32px;
+    --space-6: 48px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  button, input, textarea, select {
+    font-family: inherit;
+    font-size: 1rem;
+    color: inherit;
+  }
+
+  button {
+    appearance: none;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 0;
+    padding: var(--space-2) var(--space-3);
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  input[type="text"], input[type="number"], textarea {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 0;
+    padding: var(--space-2);
+    width: 100%;
+  }
+
+  input.invalid {
+    border-color: var(--color-danger);
+  }
+
+  textarea {
+    min-height: 220px;
+    resize: vertical;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .btn-primary {
+    background: var(--color-primary);
+    color: var(--color-primary-ink);
+    border-color: var(--color-primary);
+    font-weight: 700;
+  }
+
+  .btn-secondary {
+    background: var(--color-surface);
+    color: var(--color-ink);
+  }
+
+  .icon-btn {
+    padding: var(--space-1) var(--space-2);
+  }
+
+  #storage-notice {
+    background: var(--color-surface-alt);
+    color: var(--color-ink-soft);
+    border-bottom: 1px solid var(--color-border);
+    padding: var(--space-2) var(--space-4);
+    font-size: 0.875rem;
+  }
+
+  #app {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: var(--space-5) var(--space-4) var(--space-6);
+  }
+
+  .app-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 var(--space-5) 0;
+  }
+
+  .screen[hidden] { display: none; }
+
+  /* ---------- Setup screen ---------- */
+  .setup-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-5);
+  }
+
+  .setup-panel {
+    background: var(--color-surface);
+    padding: var(--space-4);
+  }
+
+  .setup-panel h2 {
+    font-size: 1.125rem;
+    margin: 0 0 var(--space-3) 0;
+  }
+
+  .setup-help {
+    color: var(--color-ink-soft);
+    font-size: 0.875rem;
+    margin: 0 0 var(--space-3) 0;
+  }
+
+  .mode-toggle {
+    display: flex;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+
+  .mode-toggle label {
+    border: 1px solid var(--color-border);
+    padding: var(--space-2) var(--space-3);
+    cursor: pointer;
+    background: var(--color-surface);
+  }
+
+  .mode-toggle input {
+    position: absolute;
+    opacity: 0;
+    width: 1px; height: 1px;
+  }
+
+  .mode-toggle input:checked + span {
+    font-weight: 700;
+  }
+
+  .mode-toggle label:has(input:checked) {
+    background: var(--color-surface-alt);
+    border-color: var(--color-ink);
+  }
+
+  .range-fields {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .range-fields[hidden] { display: none; }
+
+  .range-fields input { width: 120px; }
+
+  .field-error {
+    color: var(--color-danger);
+    font-size: 0.8125rem;
+    min-height: 1.2em;
+    display: block;
+    margin-top: var(--space-1);
+  }
+
+  .duplicate-panel {
+    margin-top: var(--space-3);
+    padding: var(--space-3);
+    background: var(--color-surface-alt);
+    border-left: 3px solid var(--color-primary);
+  }
+
+  .duplicate-panel[hidden] { display: none; }
+
+  .duplicate-panel p { margin: 0 0 var(--space-2) 0; font-size: 0.875rem; }
+
+  .duplicate-choices {
+    display: flex;
+    gap: var(--space-4);
+  }
+
+  .participant-count {
+    margin-top: var(--space-3);
+    font-weight: 700;
+  }
+
+  .prize-rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+
+  .prize-row {
+    display: grid;
+    grid-template-columns: 1fr 90px auto auto auto;
+    gap: var(--space-2);
+    align-items: start;
+  }
+
+  .prize-row .qty-error { grid-column: 2 / 3; }
+
+  .prize-total-warning {
+    color: var(--color-danger);
+    font-size: 0.875rem;
+    margin-top: var(--space-2);
+  }
+
+  .prize-total-warning[hidden] { display: none; }
+
+  .prize-max-note {
+    font-size: 0.8125rem;
+    color: var(--color-ink-soft);
+    margin-top: var(--space-2);
+  }
+
+  .settings-bar {
+    grid-column: 1 / -1;
+    background: var(--color-surface);
+    padding: var(--space-4);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-5);
+    align-items: center;
+  }
+
+  .settings-group { display: flex; flex-direction: column; gap: var(--space-1); }
+  .settings-group-label { font-weight: 700; font-size: 0.875rem; }
+  .radio-row { display: flex; gap: var(--space-4); }
+  .radio-row label { display: flex; align-items: center; gap: var(--space-1); cursor: pointer; }
+
+  .start-bar {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-3);
+  }
+
+  #start-blocker-message {
+    color: var(--color-ink-soft);
+    font-size: 0.875rem;
+  }
+
+  #btn-start-draw {
+    font-size: 1.0625rem;
+    padding: var(--space-3) var(--space-5);
+  }
+
+  /* ---------- Drawing screen ---------- */
+  .drawing-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: var(--space-5);
+    align-items: start;
+  }
+
+  .drawing-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .current-participant-label {
+    font-size: 1rem;
+    color: var(--color-ink-soft);
+    text-align: center;
+    margin: 0;
+  }
+
+  #current-participant-name {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(48px, 6vw, 88px);
+    text-align: center;
+    line-height: 1.1;
+    margin: 0;
+    word-break: keep-all;
+  }
+
+  .wheel-frame {
+    position: relative;
+    width: min(50vw, 58vh, 520px);
+    aspect-ratio: 1 / 1;
+    margin: 0 auto;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+
+  #wheel-rotor {
+    width: 100%;
+    height: 100%;
+    transform: rotate(0deg);
+  }
+
+  #wheel-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .wheel-pointer {
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 16px solid transparent;
+    border-right: 16px solid transparent;
+    border-top: 26px solid var(--color-primary);
+    z-index: 2;
+  }
+
+  #result-display {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(48px, 5vw, 64px);
+    text-align: center;
+    margin: 0;
+  }
+
+  #result-display[hidden] { display: none; }
+
+  .draw-controls {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .draw-controls button {
+    padding: var(--space-3) var(--space-4);
+    font-size: 1.0625rem;
+  }
+
+  #round-counter {
+    color: var(--color-ink-soft);
+    font-size: 0.875rem;
+  }
+
+  .drawing-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  .sidebar-section h2 {
+    font-size: 1rem;
+    margin: 0 0 var(--space-2) 0;
+  }
+
+  .sidebar-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    max-height: 320px;
+    overflow-y: auto;
+  }
+
+  .prize-remaining-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) 0;
+  }
+
+  .prize-swatch {
+    width: 14px;
+    height: 14px;
+    flex: none;
+    display: inline-block;
+  }
+
+  #winner-list li {
+    padding: var(--space-1) 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  /* ---------- Results screen ---------- */
+  .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
+  .results-actions {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  #results-remaining-wrap {
+    background: var(--color-surface-alt);
+    padding: var(--space-3) var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+
+  #results-remaining-wrap[hidden] { display: none; }
+
+  #results-remaining-wrap h2 { font-size: 1rem; margin: 0 0 var(--space-2) 0; }
+  #results-remaining-wrap ul { margin: 0; padding-left: 1.2em; }
+
+  #results-groups {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--space-4);
+  }
+
+  .result-group {
+    background: var(--color-surface);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .result-group h3 {
+    font-size: 1rem;
+    margin: 0 0 var(--space-2) 0;
+  }
+
+  .result-group ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(20px, 2vw, 28px);
+  }
+
+  .result-group li { padding: var(--space-1) 0; }
+
+  .empty-note { color: var(--color-ink-soft); }
+
+  /* ---------- Modal ---------- */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(28, 27, 24, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    padding: var(--space-4);
+  }
+
+  .modal-dialog {
+    background: var(--color-surface);
+    max-width: 420px;
+    width: 100%;
+    padding: var(--space-5);
+  }
+
+  .modal-dialog h2 {
+    font-size: 1.125rem;
+    margin: 0 0 var(--space-3) 0;
+  }
+
+  .modal-dialog p {
+    margin: 0 0 var(--space-4) 0;
+    color: var(--color-ink-soft);
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+  }
+
+  /* ---------- Toast ---------- */
+  #toast {
+    position: fixed;
+    left: 50%;
+    bottom: var(--space-5);
+    transform: translateX(-50%) translateY(12px);
+    background: var(--color-ink);
+    color: var(--color-surface);
+    padding: var(--space-2) var(--space-4);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 20;
+  }
+
+  #toast.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  @media (max-width: 900px) {
+    .setup-layout { grid-template-columns: 1fr; }
+    .drawing-layout { grid-template-columns: 1fr; }
+    .wheel-frame { width: min(70vw, 60vh, 440px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #toast { transition: none; }
+  }
+</style>
+</head>
+<body>
+  <div id="storage-notice" role="status" hidden></div>
+
+  <main id="app">
+    <h1 class="app-title">럭키 드로우</h1>
+
+    <section id="screen-setup" class="screen">
+      <div class="setup-layout">
+        <div class="setup-panel">
+          <h2>참가자</h2>
+          <p class="setup-help">한 줄에 한 명씩 입력하세요. 쉼표로도 구분할 수 있습니다.</p>
+
+          <div class="mode-toggle" role="radiogroup" aria-label="참가자 입력 방식">
+            <label>
+              <input type="radio" name="participant-mode" value="names" checked>
+              <span>이름 입력</span>
+            </label>
+            <label>
+              <input type="radio" name="participant-mode" value="range">
+              <span>번호 입력</span>
+            </label>
+          </div>
+
+          <div id="participant-names-fields">
+            <label for="participant-textarea" class="visually-hidden">참가자 이름</label>
+            <textarea id="participant-textarea" placeholder="예시&#10;김민수&#10;이하나&#10;박서준"></textarea>
+          </div>
+
+          <div id="participant-range-fields" class="range-fields" hidden>
+            <label for="range-start" class="visually-hidden">시작 번호</label>
+            <input type="number" id="range-start" placeholder="시작 번호" value="1">
+            <span>~</span>
+            <label for="range-end" class="visually-hidden">끝 번호</label>
+            <input type="number" id="range-end" placeholder="끝 번호" value="120">
+          </div>
+          <span id="range-error" class="field-error" aria-live="polite"></span>
+
+          <div id="duplicate-panel" class="duplicate-panel" hidden>
+            <p id="duplicate-names-list"></p>
+            <div class="duplicate-choices" role="radiogroup" aria-label="중복 이름 처리 방법">
+              <label><input type="radio" name="duplicate-resolution" value="keep"> 그대로 두기 (동명이인 구분)</label>
+              <label><input type="radio" name="duplicate-resolution" value="consolidate"> 하나만 남기기</label>
+            </div>
+          </div>
+
+          <p id="participant-count" class="participant-count" aria-live="polite">참가자 0명</p>
+        </div>
+
+        <div class="setup-panel">
+          <h2>경품</h2>
+          <p class="setup-help">경품 이름과 수량을 입력하세요. 최대 12종까지 등록할 수 있습니다.</p>
+
+          <div id="prize-rows" class="prize-rows"></div>
+          <button type="button" id="btn-add-prize">경품 추가</button>
+          <p id="prize-total-warning" class="prize-total-warning" role="status" hidden></p>
+        </div>
+
+        <div class="settings-bar">
+          <div class="settings-group">
+            <span class="settings-group-label">참가자 순서</span>
+            <div class="radio-row" role="radiogroup" aria-label="참가자 순서">
+              <label><input type="radio" name="participant-order" value="input" checked> 입력한 순서대로</label>
+              <label><input type="radio" name="participant-order" value="random"> 무작위로 섞기</label>
+            </div>
+          </div>
+          <div class="settings-group">
+            <span class="settings-group-label">꽝 처리</span>
+            <label><input type="checkbox" id="setting-blank-to-back"> 꽝이면 대기열 맨 뒤로 보내기</label>
+          </div>
+        </div>
+
+        <div class="start-bar">
+          <span id="start-blocker-message" role="status"></span>
+          <button type="button" id="btn-start-draw" class="btn-primary" disabled>추첨 시작</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-drawing" class="screen" hidden>
+      <div class="drawing-layout">
+        <div class="drawing-main">
+          <p class="current-participant-label">지금 돌릴 사람</p>
+          <p id="current-participant-name"></p>
+
+          <div class="wheel-frame">
+            <div class="wheel-pointer" aria-hidden="true"></div>
+            <div id="wheel-rotor">
+              <canvas id="wheel-canvas" width="800" height="800" role="img" aria-label="추첨 원판"></canvas>
+            </div>
+          </div>
+
+          <p id="result-display" hidden aria-live="assertive"></p>
+
+          <div class="draw-controls">
+            <button type="button" id="btn-spin" class="btn-primary">돌리기</button>
+            <button type="button" id="btn-next" class="btn-primary" hidden>다음</button>
+            <button type="button" id="btn-undo">되돌리기</button>
+            <button type="button" id="btn-skip">건너뛰기</button>
+          </div>
+          <p id="round-counter">진행 0회</p>
+        </div>
+
+        <div class="drawing-sidebar">
+          <div class="sidebar-section">
+            <h2>남은 경품</h2>
+            <ul id="prize-remaining-list" class="sidebar-list"></ul>
+          </div>
+          <div class="sidebar-section">
+            <h2>당첨자 명단</h2>
+            <ul id="winner-list" class="sidebar-list"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-results" class="screen" hidden>
+      <div class="results-header">
+        <h2 style="margin:0;font-size:1.25rem;">추첨 결과</h2>
+        <div class="results-actions">
+          <button type="button" id="btn-copy-results">결과 복사</button>
+          <button type="button" id="btn-export-csv" class="btn-primary">CSV 받기</button>
+          <button type="button" id="btn-restart">새로 시작</button>
+        </div>
+      </div>
+
+      <div id="results-remaining-wrap" hidden>
+        <h2>남은 경품</h2>
+        <ul id="results-remaining-list"></ul>
+      </div>
+
+      <div id="results-groups"></div>
+    </section>
+  </main>
+
+  <div id="modal-root"></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var STORAGE_KEY = "luckyDrawState_v1";
+  var MAX_PRIZE_TYPES = 12;
+  var WHEEL_COLORS = [
+    "#2E6F63", "#B5652D", "#3B5B8C", "#8A6D3B",
+    "#5C6B73", "#7A4F6B", "#4E7A3B", "#9B4B3E",
+    "#3E7A7A", "#6B5B3B", "#4B5B7A", "#7A5B4B"
+  ];
+
+  var state = null;
+  var storageAvailable = true;
+  var modalOpen = false;
+  var toastTimer = null;
+  var blankPatternCache = null;
+  var escHandlerBound = handleEscKey;
+
+  // ---------------- utilities ----------------
+
+  var uidCounter = 0;
+  function uid() {
+    uidCounter += 1;
+    return "id-" + Date.now().toString(36) + "-" + uidCounter.toString(36);
+  }
+
+  function deepClone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+  }
+
+  function cryptoRandomUint32() {
+    var arr = new Uint32Array(1);
+    crypto.getRandomValues(arr);
+    return arr[0];
+  }
+
+  function randomIndex(n) {
+    var max = Math.floor(0x100000000 / n) * n;
+    var x;
+    do { x = cryptoRandomUint32(); } while (x >= max);
+    return x % n;
+  }
+
+  function randomFloat() {
+    return cryptoRandomUint32() / 0x100000000;
+  }
+
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = randomIndex(i + 1);
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  function prefersReducedMotion() {
+    return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  function deg2rad(d) { return (d * Math.PI) / 180; }
+
+  function pad2(n) { return String(n).padStart(2, "0"); }
+
+  function formatTimestamp(ts) {
+    var d = new Date(ts);
+    return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()) + " " +
+      pad2(d.getHours()) + ":" + pad2(d.getMinutes()) + ":" + pad2(d.getSeconds());
+  }
+
+  function csvEscape(field) {
+    if (/[",\r\n]/.test(field)) return '"' + field.replace(/"/g, '""') + '"';
+    return field;
+  }
+
+  // ---------------- storage ----------------
+
+  function detectStorageAvailability() {
+    try {
+      var k = "__lucky_draw_test__";
+      localStorage.setItem(k, "1");
+      localStorage.removeItem(k);
+      storageAvailable = true;
+    } catch (e) {
+      storageAvailable = false;
+      showStorageNotice();
+    }
+  }
+
+  function showStorageNotice() {
+    var el = document.getElementById("storage-notice");
+    el.hidden = false;
+    el.textContent = "이 브라우저에서 저장 기능을 사용할 수 없습니다. 새로고침하면 진행 상황이 사라지니 추첨을 마칠 때까지 새로고침하지 마세요.";
+  }
+
+  function persist() {
+    if (!storageAvailable) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      storageAvailable = false;
+      showStorageNotice();
+    }
+  }
+
+  function loadState() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function clearStorage() {
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+  }
+
+  // ---------------- state ----------------
+
+  function createInitialState() {
+    return {
+      screen: "setup",
+      settings: { order: "input", blankToBack: false },
+      queue: [],
+      prizes: [],
+      wheelSlots: [],
+      wheelRotation: 0,
+      phase: "ready",
+      pending: null,
+      winners: [],
+      roundCount: 0,
+      lastSnapshot: null
+    };
+  }
+
+  function findPrize(id) {
+    for (var i = 0; i < state.prizes.length; i++) {
+      if (state.prizes[i].id === id) return state.prizes[i];
+    }
+    return null;
+  }
+
+  function showScreen(name) {
+    ["setup", "drawing", "results"].forEach(function (s) {
+      document.getElementById("screen-" + s).hidden = s !== name;
+    });
+  }
+
+  // ---------------- toast ----------------
+
+  function showToast(msg) {
+    var el = document.getElementById("toast");
+    el.textContent = msg;
+    el.classList.add("visible");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.classList.remove("visible"); }, 2500);
+  }
+
+  // ---------------- modal ----------------
+
+  function handleEscKey(e) {
+    if (e.key === "Escape") closeModal();
+  }
+
+  function openModal(opts) {
+    var root = document.getElementById("modal-root");
+    root.innerHTML = "";
+    var overlay = document.createElement("div");
+    overlay.className = "modal-overlay";
+    var dialog = document.createElement("div");
+    dialog.className = "modal-dialog";
+    dialog.setAttribute("role", "dialog");
+    dialog.setAttribute("aria-modal", "true");
+    var h = document.createElement("h2");
+    h.textContent = opts.title;
+    var p = document.createElement("p");
+    p.textContent = opts.body;
+    var actionsWrap = document.createElement("div");
+    actionsWrap.className = "modal-actions";
+    opts.actions.forEach(function (a) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = a.label;
+      btn.className = a.variant === "primary" ? "btn-primary" : "btn-secondary";
+      btn.addEventListener("click", a.onClick);
+      actionsWrap.appendChild(btn);
+    });
+    dialog.appendChild(h);
+    dialog.appendChild(p);
+    dialog.appendChild(actionsWrap);
+    overlay.appendChild(dialog);
+    root.appendChild(overlay);
+    modalOpen = true;
+    var firstBtn = actionsWrap.querySelector("button");
+    if (firstBtn) firstBtn.focus();
+    document.addEventListener("keydown", escHandlerBound);
+  }
+
+  function closeModal() {
+    var root = document.getElementById("modal-root");
+    root.innerHTML = "";
+    modalOpen = false;
+    document.removeEventListener("keydown", escHandlerBound);
+  }
+
+  function confirmAction(message, onConfirm) {
+    openModal({
+      title: "확인",
+      body: message,
+      actions: [
+        { label: "취소", variant: "secondary", onClick: closeModal },
+        { label: "확인", variant: "primary", onClick: function () { closeModal(); onConfirm(); } }
+      ]
+    });
+  }
+
+  // ---------------- setup screen ----------------
+
+  var participantMode = "names";
+  var duplicateResolution = null;
+  var prizeRows = [];
+
+  function parseParticipantNames(text) {
+    return text.split(/[\n,]/).map(function (s) { return s.trim(); }).filter(function (s) { return s.length > 0; });
+  }
+
+  function parseParticipantRange(startStr, endStr) {
+    var start = parseInt(startStr, 10);
+    var end = parseInt(endStr, 10);
+    if (!Number.isFinite(start) || !Number.isFinite(end)) {
+      return { error: "시작과 끝 번호를 입력하세요." };
+    }
+    if (start > end) {
+      return { error: "시작 번호가 끝 번호보다 클 수 없습니다." };
+    }
+    var list = [];
+    for (var i = start; i <= end; i++) list.push(String(i));
+    return { list: list };
+  }
+
+  function computeParticipantsResult() {
+    var rawNames = [];
+    var rangeError = null;
+    if (participantMode === "names") {
+      rawNames = parseParticipantNames(document.getElementById("participant-textarea").value);
+    } else {
+      var r = parseParticipantRange(
+        document.getElementById("range-start").value,
+        document.getElementById("range-end").value
+      );
+      if (r.error) { rangeError = r.error; rawNames = []; }
+      else rawNames = r.list;
+    }
+
+    var counts = new Map();
+    rawNames.forEach(function (n) { counts.set(n, (counts.get(n) || 0) + 1); });
+    var duplicateNames = [];
+    counts.forEach(function (c, n) { if (c > 1) duplicateNames.push(n); });
+
+    var finalNames;
+    if (duplicateNames.length > 0) {
+      if (duplicateResolution === "keep") {
+        var seen = new Map();
+        finalNames = rawNames.map(function (n) {
+          if (counts.get(n) > 1) {
+            var idx = (seen.get(n) || 0) + 1;
+            seen.set(n, idx);
+            return n + " (" + idx + ")";
+          }
+          return n;
+        });
+      } else if (duplicateResolution === "consolidate") {
+        var seenSet = new Set();
+        finalNames = rawNames.filter(function (n) {
+          if (seenSet.has(n)) return false;
+          seenSet.add(n);
+          return true;
+        });
+      } else {
+        finalNames = null;
+      }
+    } else {
+      finalNames = rawNames;
+    }
+
+    return { rawNames: rawNames, rangeError: rangeError, duplicateNames: duplicateNames, finalNames: finalNames };
+  }
+
+  function mergePrizeRowsByName(rows) {
+    var map = new Map();
+    var order = [];
+    rows.forEach(function (r) {
+      var name = r.name.trim();
+      if (!name) return;
+      var qty = Number.isInteger(r.quantity) && r.quantity >= 1 ? r.quantity : 0;
+      if (qty <= 0) return;
+      if (map.has(name)) {
+        map.get(name).quantity += qty;
+      } else {
+        var obj = { id: r.id, name: name, quantity: qty };
+        map.set(name, obj);
+        order.push(obj);
+      }
+    });
+    return order;
+  }
+
+  function handlePrizeNameBlur(rowId) {
+    var row = null;
+    for (var i = 0; i < prizeRows.length; i++) { if (prizeRows[i].id === rowId) { row = prizeRows[i]; break; } }
+    if (!row) return;
+    var name = row.name.trim();
+    if (!name) return;
+    var earlier = null;
+    for (var j = 0; j < prizeRows.length; j++) {
+      if (prizeRows[j].id !== rowId && prizeRows[j].name.trim() === name) { earlier = prizeRows[j]; break; }
+    }
+    if (earlier) {
+      earlier.quantity = (Number.isInteger(earlier.quantity) ? earlier.quantity : 0) + (Number.isInteger(row.quantity) ? row.quantity : 0);
+      prizeRows = prizeRows.filter(function (r) { return r.id !== rowId; });
+      showToast("중복된 경품명을 합쳤습니다.");
+      renderPrizeRows();
+      refreshSetupState();
+    }
+  }
+
+  function moveRow(idx, dir) {
+    var target = idx + dir;
+    if (target < 0 || target >= prizeRows.length) return;
+    var tmp = prizeRows[idx];
+    prizeRows[idx] = prizeRows[target];
+    prizeRows[target] = tmp;
+    renderPrizeRows();
+  }
+
+  function renderPrizeRows() {
+    var container = document.getElementById("prize-rows");
+    container.innerHTML = "";
+    prizeRows.forEach(function (row, idx) {
+      var rowEl = document.createElement("div");
+      rowEl.className = "prize-row";
+      rowEl.dataset.id = row.id;
+
+      var nameInput = document.createElement("input");
+      nameInput.type = "text";
+      nameInput.value = row.name;
+      nameInput.placeholder = "경품 이름";
+      nameInput.setAttribute("aria-label", "경품 이름");
+      nameInput.addEventListener("input", function (e) { row.name = e.target.value; refreshSetupState(); });
+      nameInput.addEventListener("blur", function () { handlePrizeNameBlur(row.id); });
+
+      var qtyInput = document.createElement("input");
+      qtyInput.type = "number";
+      qtyInput.min = "1";
+      qtyInput.value = String(row.quantity);
+      qtyInput.setAttribute("aria-label", "수량");
+
+      var qtyError = document.createElement("span");
+      qtyError.className = "field-error qty-error";
+
+      qtyInput.addEventListener("input", function (e) {
+        var v = parseInt(e.target.value, 10);
+        row.quantity = v;
+        if (!Number.isInteger(v) || v < 1) {
+          qtyError.textContent = "1 이상의 정수를 입력하세요.";
+          qtyInput.classList.add("invalid");
+        } else {
+          qtyError.textContent = "";
+          qtyInput.classList.remove("invalid");
+        }
+        refreshSetupState();
+      });
+
+      var upBtn = document.createElement("button");
+      upBtn.type = "button"; upBtn.className = "icon-btn"; upBtn.textContent = "▲";
+      upBtn.setAttribute("aria-label", "위로 이동");
+      upBtn.disabled = idx === 0;
+      upBtn.addEventListener("click", function () { moveRow(idx, -1); });
+
+      var downBtn = document.createElement("button");
+      downBtn.type = "button"; downBtn.className = "icon-btn"; downBtn.textContent = "▼";
+      downBtn.setAttribute("aria-label", "아래로 이동");
+      downBtn.disabled = idx === prizeRows.length - 1;
+      downBtn.addEventListener("click", function () { moveRow(idx, 1); });
+
+      var delBtn = document.createElement("button");
+      delBtn.type = "button"; delBtn.className = "icon-btn"; delBtn.textContent = "삭제";
+      delBtn.setAttribute("aria-label", "경품 삭제");
+      delBtn.addEventListener("click", function () {
+        prizeRows = prizeRows.filter(function (r) { return r.id !== row.id; });
+        if (prizeRows.length === 0) prizeRows = [{ id: uid(), name: "", quantity: 1 }];
+        renderPrizeRows();
+        refreshSetupState();
+      });
+
+      rowEl.appendChild(nameInput);
+      rowEl.appendChild(qtyInput);
+      rowEl.appendChild(upBtn);
+      rowEl.appendChild(downBtn);
+      rowEl.appendChild(delBtn);
+      rowEl.appendChild(qtyError);
+      container.appendChild(rowEl);
+    });
+
+    document.getElementById("btn-add-prize").disabled = prizeRows.length >= MAX_PRIZE_TYPES;
+  }
+
+  function refreshSetupState() {
+    var pr = computeParticipantsResult();
+
+    var countEl = document.getElementById("participant-count");
+    var dupPanel = document.getElementById("duplicate-panel");
+    var dupList = document.getElementById("duplicate-names-list");
+    var rangeErrorEl = document.getElementById("range-error");
+
+    rangeErrorEl.textContent = pr.rangeError || "";
+
+    if (pr.duplicateNames.length > 0) {
+      dupPanel.hidden = false;
+      dupList.textContent = "중복된 이름: " + pr.duplicateNames.join(", ");
+    } else {
+      dupPanel.hidden = true;
+      duplicateResolution = null;
+      var checked = document.querySelector('input[name="duplicate-resolution"]:checked');
+      if (checked) checked.checked = false;
+    }
+
+    if (pr.rangeError) {
+      countEl.textContent = "";
+    } else if (pr.finalNames) {
+      countEl.textContent = "참가자 " + pr.finalNames.length + "명";
+    } else {
+      countEl.textContent = "중복 처리 방법을 선택하세요.";
+    }
+
+    var merged = mergePrizeRowsByName(prizeRows);
+    var totalQty = merged.reduce(function (s, p) { return s + p.quantity; }, 0);
+    var warnEl = document.getElementById("prize-total-warning");
+    var participantCount = pr.finalNames ? pr.finalNames.length : null;
+    if (participantCount != null && totalQty > participantCount) {
+      warnEl.hidden = false;
+      warnEl.textContent = "경품 총수량(" + totalQty + "개)이 참가자 수(" + participantCount + "명)보다 많습니다.";
+    } else {
+      warnEl.hidden = true;
+    }
+
+    var reasons = [];
+    if (pr.rangeError) reasons.push(pr.rangeError);
+    if (!pr.rangeError && (!pr.finalNames || pr.finalNames.length < 1)) {
+      if (pr.duplicateNames.length > 0 && !duplicateResolution) reasons.push("중복된 참가자 이름 처리 방법을 선택하세요.");
+      else reasons.push("참가자를 1명 이상 입력하세요.");
+    }
+    if (merged.length < 1) reasons.push("경품을 1개 이상 입력하세요.");
+
+    var btn = document.getElementById("btn-start-draw");
+    var msgEl = document.getElementById("start-blocker-message");
+    if (reasons.length) {
+      btn.disabled = true;
+      msgEl.textContent = reasons[0];
+    } else {
+      btn.disabled = false;
+      msgEl.textContent = "";
+    }
+
+    return pr;
+  }
+
+  function resetSetupScreenDom() {
+    participantMode = "names";
+    duplicateResolution = null;
+    document.querySelector('input[name="participant-mode"][value="names"]').checked = true;
+    document.getElementById("participant-names-fields").hidden = false;
+    document.getElementById("participant-range-fields").hidden = true;
+    document.getElementById("participant-textarea").value = "";
+    document.getElementById("range-start").value = "1";
+    document.getElementById("range-end").value = "120";
+    document.querySelector('input[name="participant-order"][value="input"]').checked = true;
+    document.getElementById("setting-blank-to-back").checked = false;
+    prizeRows = [{ id: uid(), name: "", quantity: 1 }];
+    renderPrizeRows();
+    refreshSetupState();
+  }
+
+  function initSetupScreen() {
+    document.querySelectorAll('input[name="participant-mode"]').forEach(function (radio) {
+      radio.addEventListener("change", function (e) {
+        participantMode = e.target.value;
+        document.getElementById("participant-names-fields").hidden = participantMode !== "names";
+        document.getElementById("participant-range-fields").hidden = participantMode !== "range";
+        refreshSetupState();
+      });
+    });
+
+    document.getElementById("participant-textarea").addEventListener("input", refreshSetupState);
+    document.getElementById("range-start").addEventListener("input", refreshSetupState);
+    document.getElementById("range-end").addEventListener("input", refreshSetupState);
+
+    document.querySelectorAll('input[name="duplicate-resolution"]').forEach(function (radio) {
+      radio.addEventListener("change", function (e) {
+        duplicateResolution = e.target.value;
+        refreshSetupState();
+      });
+    });
+
+    document.getElementById("btn-add-prize").addEventListener("click", function () {
+      if (prizeRows.length >= MAX_PRIZE_TYPES) return;
+      prizeRows.push({ id: uid(), name: "", quantity: 1 });
+      renderPrizeRows();
+      refreshSetupState();
+    });
+
+    document.querySelectorAll('input[name="participant-order"]').forEach(function (radio) {
+      radio.addEventListener("change", refreshSetupState);
+    });
+    document.getElementById("setting-blank-to-back").addEventListener("change", refreshSetupState);
+
+    document.getElementById("btn-start-draw").addEventListener("click", startDraw);
+
+    prizeRows = [{ id: uid(), name: "", quantity: 1 }];
+    renderPrizeRows();
+    refreshSetupState();
+  }
+
+  function startDraw() {
+    var pr = refreshSetupState();
+    if (!pr.finalNames || pr.finalNames.length < 1) return;
+    var merged = mergePrizeRowsByName(prizeRows);
+    if (merged.length < 1) return;
+
+    var names = pr.finalNames.slice();
+    var orderRandom = document.querySelector('input[name="participant-order"]:checked').value === "random";
+    if (orderRandom) names = shuffle(names);
+
+    var queue = names.map(function (n) { return { id: uid(), name: n }; });
+    var prizes = merged.map(function (p, i) {
+      return {
+        id: p.id,
+        name: p.name,
+        quantity: p.quantity,
+        remaining: p.quantity,
+        color: WHEEL_COLORS[i % WHEEL_COLORS.length]
+      };
+    });
+
+    state = createInitialState();
+    state.screen = "drawing";
+    state.settings.order = orderRandom ? "random" : "input";
+    state.settings.blankToBack = document.getElementById("setting-blank-to-back").checked;
+    state.queue = queue;
+    state.prizes = prizes;
+    state.wheelSlots = buildWheelSlots(prizes);
+    state.phase = "ready";
+
+    persist();
+    showScreen("drawing");
+    renderDrawingScreen();
+    restoreWheelVisual();
+  }
+
+  // ---------------- wheel ----------------
+
+  function buildWheelSlots(prizes) {
+    var slots = [];
+    prizes.forEach(function (p) {
+      if (p.remaining > 0) slots.push({ kind: "prize", prizeId: p.id });
+    });
+    slots.push({ kind: "blank" });
+    return shuffle(slots);
+  }
+
+  function getBlankPattern(ctx) {
+    if (blankPatternCache) return blankPatternCache;
+    var p = document.createElement("canvas");
+    p.width = 28; p.height = 28;
+    var pc = p.getContext("2d");
+    pc.fillStyle = "#CFC9BA";
+    pc.fillRect(0, 0, 28, 28);
+    pc.strokeStyle = "#8B8577";
+    pc.lineWidth = 8;
+    pc.beginPath();
+    pc.moveTo(-4, 32); pc.lineTo(32, -4);
+    pc.moveTo(-4, 8); pc.lineTo(8, -4);
+    pc.moveTo(20, 32); pc.lineTo(32, 20);
+    pc.stroke();
+    blankPatternCache = ctx.createPattern(p, "repeat");
+    return blankPatternCache;
+  }
+
+  function truncateToWidth(ctx, text, maxWidth) {
+    if (ctx.measureText(text).width <= maxWidth) return text;
+    var result = text;
+    while (result.length > 1 && ctx.measureText(result + "…").width > maxWidth) {
+      result = result.slice(0, -1);
+    }
+    return result.length < text.length ? result + "…" : text;
+  }
+
+  function labelForSlot(slot) {
+    if (slot.kind === "blank") return "꽝";
+    var p = findPrize(slot.prizeId);
+    if (!p) return "";
+    return p.remaining > 1 ? p.name + " ×" + p.remaining : p.name;
+  }
+
+  function colorForSlot(slot, ctx) {
+    if (slot.kind === "blank") return getBlankPattern(ctx);
+    var p = findPrize(slot.prizeId);
+    return p ? p.color : "#999999";
+  }
+
+  function drawWheel() {
+    var canvas = document.getElementById("wheel-canvas");
+    var ctx = canvas.getContext("2d");
+    var size = canvas.width;
+    var cx = size / 2, cy = size / 2;
+    var outerR = size / 2 - 6;
+    var innerLabelR = outerR * 0.34;
+
+    ctx.clearRect(0, 0, size, size);
+
+    var slots = state.wheelSlots;
+    var n = slots.length;
+    if (n === 0) return;
+    var seg = 360 / n;
+
+    slots.forEach(function (slot, i) {
+      var startDeg = i * seg, endDeg = (i + 1) * seg;
+      var startRad = deg2rad(startDeg - 90), endRad = deg2rad(endDeg - 90);
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, outerR, startRad, endRad, false);
+      ctx.closePath();
+      ctx.fillStyle = colorForSlot(slot, ctx);
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "#F6F4EF";
+      ctx.stroke();
+
+      var midDeg = startDeg + seg / 2;
+      var upsideDown = midDeg > 90 && midDeg < 270;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(deg2rad(midDeg - 90 + (upsideDown ? 180 : 0)));
+      ctx.textAlign = upsideDown ? "right" : "left";
+      ctx.textBaseline = "middle";
+      var maxWidth = outerR - innerLabelR - 24;
+      ctx.font = "700 " + Math.round(size * 0.03) + "px " + getComputedStyle(document.body).getPropertyValue("--font-sans");
+      var label = truncateToWidth(ctx, labelForSlot(slot), maxWidth);
+      ctx.fillStyle = slot.kind === "blank" ? "#3A362E" : "#FFFFFF";
+      ctx.fillText(label, upsideDown ? -innerLabelR : innerLabelR, 0);
+      ctx.restore();
+    });
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerR * 0.1, 0, Math.PI * 2);
+    ctx.fillStyle = "#1C1B18";
+    ctx.fill();
+  }
+
+  function setWheelRotationInstant(rotation) {
+    var rotor = document.getElementById("wheel-rotor");
+    rotor.style.transition = "none";
+    rotor.style.transform = "rotate(" + rotation + "deg)";
+    void rotor.offsetHeight;
+  }
+
+  function animateWheelTo(rotation, durationMs) {
+    var rotor = document.getElementById("wheel-rotor");
+    rotor.style.transition = "transform " + durationMs + "ms cubic-bezier(0.12,0.67,0.14,1)";
+    requestAnimationFrame(function () {
+      rotor.style.transform = "rotate(" + rotation + "deg)";
+    });
+  }
+
+  function restoreWheelVisual() {
+    if (state.pending && state.phase === "spinning") {
+      state.phase = "result";
+      persist();
+    }
+    drawWheel();
+    setWheelRotationInstant(state.wheelRotation);
+  }
+
+  function pickOutcome() {
+    var idx = randomIndex(state.wheelSlots.length);
+    return { idx: idx, slot: state.wheelSlots[idx] };
+  }
+
+  function startSpin() {
+    if (state.phase !== "ready") return;
+    var participant = state.queue[0];
+    var outcome = pickOutcome();
+    var idx = outcome.idx, slot = outcome.slot;
+    var n = state.wheelSlots.length;
+    var seg = 360 / n;
+    var marginDeg = seg * 0.15;
+    var offset = marginDeg + randomFloat() * (seg - 2 * marginDeg);
+    var targetTopAngle = idx * seg + offset;
+    var desiredMod = ((360 - targetTopAngle) % 360 + 360) % 360;
+    var currentMod = ((state.wheelRotation % 360) + 360) % 360;
+    var delta = desiredMod - currentMod;
+    if (delta <= 0) delta += 360;
+
+    var reduced = prefersReducedMotion();
+    var extraTurns = reduced ? 1 : (4 + Math.floor(randomFloat() * 3));
+    var durationMs = reduced ? 1000 : (3000 + Math.floor(randomFloat() * 2000));
+    var newRotation = state.wheelRotation + delta + extraTurns * 360;
+
+    var prizeName = null;
+    if (slot.kind === "prize") {
+      var p = findPrize(slot.prizeId);
+      prizeName = p ? p.name : null;
+    }
+
+    state.pending = {
+      participantId: participant.id,
+      participantName: participant.name,
+      kind: slot.kind,
+      prizeId: slot.kind === "prize" ? slot.prizeId : null,
+      prizeName: prizeName,
+      decidedAt: Date.now()
+    };
+    state.wheelRotation = newRotation;
+    state.phase = "spinning";
+    persist();
+    updateControlsState();
+    animateWheelTo(newRotation, durationMs);
+  }
+
+  function onSpinTransitionEnd(e) {
+    if (e.propertyName !== "transform") return;
+    if (state.phase !== "spinning") return;
+    state.phase = "result";
+    persist();
+    renderDrawingScreen();
+  }
+
+  function commitRound() {
+    if (state.phase !== "result" || !state.pending) return;
+    var pending = state.pending;
+
+    state.lastSnapshot = {
+      queue: deepClone(state.queue),
+      prizes: deepClone(state.prizes),
+      wheelSlots: deepClone(state.wheelSlots),
+      winners: deepClone(state.winners),
+      roundCount: state.roundCount,
+      wheelRotation: state.wheelRotation
+    };
+
+    var participant = { id: pending.participantId, name: pending.participantName };
+    state.queue = state.queue.slice(1);
+
+    if (pending.kind === "prize") {
+      var prize = findPrize(pending.prizeId);
+      prize.remaining -= 1;
+      state.winners.push({
+        seq: state.winners.length + 1,
+        participant: participant.name,
+        prize: prize.name,
+        timestamp: Date.now()
+      });
+    } else {
+      if (state.settings.blankToBack) state.queue.push(participant);
+    }
+
+    state.roundCount += 1;
+    state.pending = null;
+
+    var anyPrizeLeft = state.prizes.some(function (p) { return p.remaining > 0; });
+    if (!anyPrizeLeft || state.queue.length === 0) {
+      state.screen = "results";
+      persist();
+      renderResultsScreen();
+      showScreen("results");
+      return;
+    }
+
+    state.wheelSlots = buildWheelSlots(state.prizes);
+    state.phase = "ready";
+    persist();
+    drawWheel();
+    renderDrawingScreen();
+  }
+
+  function undoLastRound() {
+    if (!state.lastSnapshot) return;
+    var snap = state.lastSnapshot;
+    state.queue = snap.queue;
+    state.prizes = snap.prizes;
+    state.wheelSlots = snap.wheelSlots;
+    state.winners = snap.winners;
+    state.roundCount = snap.roundCount;
+    state.wheelRotation = snap.wheelRotation;
+    state.lastSnapshot = null;
+    state.pending = null;
+    state.phase = "ready";
+    persist();
+    drawWheel();
+    setWheelRotationInstant(state.wheelRotation);
+    renderDrawingScreen();
+  }
+
+  function skipCurrent() {
+    if (state.phase !== "ready" || state.queue.length <= 1) return;
+    var p = state.queue.shift();
+    state.queue.push(p);
+    persist();
+    renderDrawingScreen();
+  }
+
+  function updateControlsState() {
+    var spinBtn = document.getElementById("btn-spin");
+    var undoBtn = document.getElementById("btn-undo");
+    var skipBtn = document.getElementById("btn-skip");
+    var nextBtn = document.getElementById("btn-next");
+
+    spinBtn.disabled = state.phase !== "ready";
+    undoBtn.disabled = !(state.phase === "ready" && state.lastSnapshot);
+    skipBtn.disabled = !(state.phase === "ready" && state.queue.length > 1);
+    nextBtn.hidden = state.phase !== "result";
+    spinBtn.hidden = state.phase === "result";
+  }
+
+  function renderPrizeRemainingList() {
+    var el = document.getElementById("prize-remaining-list");
+    el.innerHTML = "";
+    state.prizes.filter(function (p) { return p.remaining > 0; }).forEach(function (p) {
+      var li = document.createElement("li");
+      li.className = "prize-remaining-item";
+      var swatch = document.createElement("span");
+      swatch.className = "prize-swatch";
+      swatch.style.background = p.color;
+      var text = document.createElement("span");
+      text.textContent = p.remaining > 1 ? p.name + " ×" + p.remaining : p.name;
+      li.appendChild(swatch);
+      li.appendChild(text);
+      el.appendChild(li);
+    });
+  }
+
+  function renderWinnerList() {
+    var el = document.getElementById("winner-list");
+    el.innerHTML = "";
+    var recent = state.winners.slice().reverse();
+    recent.forEach(function (w) {
+      var li = document.createElement("li");
+      li.textContent = w.participant + " — " + w.prize;
+      el.appendChild(li);
+    });
+  }
+
+  function renderDrawingScreen() {
+    updateControlsState();
+    var nameEl = document.getElementById("current-participant-name");
+    nameEl.textContent = state.queue.length ? state.queue[0].name : "";
+    document.getElementById("round-counter").textContent = "진행 " + state.roundCount + "회";
+
+    var resultBox = document.getElementById("result-display");
+    if (state.phase === "result" && state.pending) {
+      resultBox.hidden = false;
+      var p = state.pending;
+      resultBox.textContent = p.kind === "prize" ? (p.participantName + " — " + p.prizeName) : (p.participantName + " — 꽝");
+    } else {
+      resultBox.hidden = true;
+      resultBox.textContent = "";
+    }
+
+    renderPrizeRemainingList();
+    renderWinnerList();
+  }
+
+  // ---------------- results screen ----------------
+
+  function groupWinnersByPrize() {
+    var order = [];
+    var map = new Map();
+    state.winners.forEach(function (w) {
+      if (!map.has(w.prize)) { map.set(w.prize, []); order.push(w.prize); }
+      map.get(w.prize).push(w);
+    });
+    return { order: order, map: map };
+  }
+
+  function renderResultsScreen() {
+    var remainingWrap = document.getElementById("results-remaining-wrap");
+    var remaining = state.prizes.filter(function (p) { return p.remaining > 0; });
+    if (remaining.length) {
+      remainingWrap.hidden = false;
+      var list = document.getElementById("results-remaining-list");
+      list.innerHTML = "";
+      remaining.forEach(function (p) {
+        var li = document.createElement("li");
+        li.textContent = p.remaining > 1 ? p.name + " ×" + p.remaining : p.name;
+        list.appendChild(li);
+      });
+    } else {
+      remainingWrap.hidden = true;
+    }
+
+    var groupsEl = document.getElementById("results-groups");
+    groupsEl.innerHTML = "";
+    var grouped = groupWinnersByPrize();
+    if (grouped.order.length === 0) {
+      var note = document.createElement("p");
+      note.className = "empty-note";
+      note.textContent = "당첨 기록이 없습니다.";
+      groupsEl.appendChild(note);
+    }
+    grouped.order.forEach(function (prizeName) {
+      var winnersOfPrize = grouped.map.get(prizeName);
+      var group = document.createElement("div");
+      group.className = "result-group";
+      var h = document.createElement("h3");
+      h.textContent = prizeName + " (" + winnersOfPrize.length + "명)";
+      var ul = document.createElement("ul");
+      winnersOfPrize.forEach(function (w) {
+        var li = document.createElement("li");
+        li.textContent = w.participant;
+        ul.appendChild(li);
+      });
+      group.appendChild(h);
+      group.appendChild(ul);
+      groupsEl.appendChild(group);
+    });
+  }
+
+  function exportCsv() {
+    var rows = [["순번", "참가자", "경품", "당첨시각"]];
+    state.winners.forEach(function (w) {
+      rows.push([String(w.seq), w.participant, w.prize, formatTimestamp(w.timestamp)]);
+    });
+    var csv = rows.map(function (r) { return r.map(csvEscape).join(","); }).join("\r\n");
+    var blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "lucky-draw-results.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function fallbackCopy(text) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand("copy");
+      showToast("복사했습니다.");
+    } catch (e) {
+      showToast("복사에 실패했습니다.");
+    }
+    document.body.removeChild(ta);
+  }
+
+  function copyResultsText() {
+    var grouped = groupWinnersByPrize();
+    var lines = [];
+    grouped.order.forEach(function (prizeName) {
+      lines.push(prizeName);
+      grouped.map.get(prizeName).forEach(function (w) { lines.push("- " + w.participant); });
+      lines.push("");
+    });
+    var text = lines.join("\n").trim();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        showToast("복사했습니다.");
+      }).catch(function () { fallbackCopy(text); });
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
+  function restartApp() {
+    clearStorage();
+    state = createInitialState();
+    resetSetupScreenDom();
+    showScreen("setup");
+  }
+
+  // ---------------- resume flow ----------------
+
+  function showResumePrompt(saved) {
+    openModal({
+      title: "이어서 진행할 수 있는 기록이 있습니다",
+      body: "진행 " + saved.roundCount + "회, 당첨 " + saved.winners.length + "건이 저장되어 있습니다. 이어서 하시겠습니까?",
+      actions: [
+        {
+          label: "새로 시작", variant: "secondary", onClick: function () {
+            closeModal();
+            clearStorage();
+            state = createInitialState();
+            resetSetupScreenDom();
+            showScreen("setup");
+          }
+        },
+        {
+          label: "이어서 하기", variant: "primary", onClick: function () {
+            closeModal();
+            resumeFrom(saved);
+          }
+        }
+      ]
+    });
+  }
+
+  function resumeFrom(saved) {
+    state = saved;
+    if (state.screen === "drawing") {
+      showScreen("drawing");
+      restoreWheelVisual();
+      renderDrawingScreen();
+    } else if (state.screen === "results") {
+      renderResultsScreen();
+      showScreen("results");
+    } else {
+      showScreen("setup");
+    }
+  }
+
+  // ---------------- global bindings ----------------
+
+  function bindStaticEventListeners() {
+    document.getElementById("btn-spin").addEventListener("click", startSpin);
+    document.getElementById("btn-next").addEventListener("click", commitRound);
+    document.getElementById("btn-undo").addEventListener("click", function () {
+      confirmAction("직전 회차를 되돌립니다. 참가자, 경품 수량, 원판 배치가 이전 상태로 돌아갑니다.", undoLastRound);
+    });
+    document.getElementById("btn-skip").addEventListener("click", function () {
+      var name = state.queue[0] ? state.queue[0].name : "";
+      confirmAction(name + "님을 대기열 맨 뒤로 보냅니다.", skipCurrent);
+    });
+    document.getElementById("btn-export-csv").addEventListener("click", exportCsv);
+    document.getElementById("btn-copy-results").addEventListener("click", copyResultsText);
+    document.getElementById("btn-restart").addEventListener("click", function () {
+      confirmAction("모든 진행 상황을 지우고 새로 시작합니다.", restartApp);
+    });
+
+    document.getElementById("wheel-rotor").addEventListener("transitionend", onSpinTransitionEnd);
+
+    document.addEventListener("keydown", function (e) {
+      if (modalOpen) return;
+      if (!state || state.screen !== "drawing") return;
+      var tag = document.activeElement && document.activeElement.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (e.code === "Space") {
+        e.preventDefault();
+        if (state.phase === "ready") startSpin();
+      } else if (e.key === "Enter") {
+        if (state.phase === "result") { e.preventDefault(); commitRound(); }
+      }
+    });
+  }
+
+  // ---------------- init ----------------
+
+  function init() {
+    detectStorageAvailability();
+    initSetupScreen();
+    bindStaticEventListeners();
+
+    var saved = storageAvailable ? loadState() : null;
+    if (saved) {
+      showResumePrompt(saved);
+    } else {
+      state = createInitialState();
+      showScreen("setup");
+    }
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
